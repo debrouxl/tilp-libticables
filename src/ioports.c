@@ -1,5 +1,5 @@
 /* Hey EMACS -*- linux-c -*- */
-/* $Id$ */
+/* $Id: detect.c 663 2004-04-28 16:25:13Z tijl $ */
 
 /*  libticables - Ti Link Cable library, a part of the TiLP project
  *  Copyright (C) 1999-2004  Romain Lievin
@@ -19,21 +19,18 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* I/O ports wrapper */
-
-
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
 #if defined(__LINUX__)
-#include "linux/linux_ioports.c"
+#include "linux/ioports.c"
 #elif defined(__MACOSX__)
-#include "macos/macos_ioports.c"
+#include "macos/ioports.c"
 #elif defined(__BSD__)
-#include "bsd/bsd_ioports.c"
+#include "linux/ioports.c"
 #elif defined(__WIN32__)
-#include "win32/win32_ioports.c"
+#include "win32/ioports.c"
 #else
 #include "none.h"
 #endif

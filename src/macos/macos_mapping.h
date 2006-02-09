@@ -1,8 +1,8 @@
 /* Hey EMACS -*- macos-c -*- */
 /* $Id$ */
 
-/*  libticables - Ti Link Cable library, a part of the TiLP project
- *  Copyright (C) 1999-2004  Romain Lievin
+/*  libCables - Ti Link Cable library, a part of the TiLP project
+ *  Copyright (C) 1999-2005  Romain Lievin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 
 #include "cabl_def.h"
 
-int macos_get_method(TicableType type, int resources, TicableMethod *method);
-int macos_register_cable(TicableType type, TicableLinkCable *lc);
+int macos_get_method(CableType type, int resources, CableMethod *method);
+int macos_register_cable(CableType type, CableLinkCable *lc);
 
 #endif

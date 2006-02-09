@@ -1,9 +1,8 @@
 /* Hey EMACS -*- macos-c -*- */
 /* $Id$ */
 
-/*  libticables - Ti Link Cable library, a part of the TiLP project
- *  Copyright (C) 1999-2004  Romain Lievin, Julien Blache
- *  Copyright (c) 2005, Christian Walther (patches for Mac OS-X port)
+/*  libCables - Ti Link Cable library, a part of the TiLP project
+ *  Copyright (C) 1999-2005  Romain Lievin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,7 +39,7 @@
 #include "macos_mapping.h"
 #include "links.h"
 
-int macos_get_method(TicableType type, int resources, TicableMethod *method)
+int macos_get_method(CableType type, int resources, CableMethod *method)
 {
 	printl1(0, _("getting method from resources"));
 	
@@ -55,10 +54,6 @@ int macos_get_method(TicableType type, int resources, TicableMethod *method)
 	// depending on link type, do some checks
 	switch(type)
 	{
-	case LINK_NUL:
-        *method |= IOM_NULL | IOM_OK;
-        break;                
-
 	case LINK_TGL:
 		if(resources & IO_API) {
 			*method |= IOM_API | IOM_OK;
@@ -78,7 +73,7 @@ int macos_get_method(TicableType type, int resources, TicableMethod *method)
 		break;
 
 	default:
-		printl1(2, "bad argument to macos_get_method (invalid link cable type %d).\n", type);
+		printl1(2, "bad argument (invalid link cable).\n");
 		return ERR_ILLEGAL_ARG;
 		break;
 	}
@@ -92,19 +87,11 @@ int macos_get_method(TicableType type, int resources, TicableMethod *method)
 }
 
 // Bind the right I/O address & device according to I/O method
-static int macos_map_io(TicableMethod method, TicablePort port)
+static int macos_map_io(CableMethod method, CablePort port)
 {
 	printl1(0, _("mapping I/O...\n"));
 	
 	switch (port) {
-  	case USER_PORT:
-	break;
-			
-	case NULL_PORT:
-		strcpy(io_device, "/dev/null");
-		io_address = 0;
-	break;
-			
   	case OSX_USB_PORT:
     		strcpy(io_device, "");
     	break;
@@ -113,7 +100,7 @@ static int macos_map_io(TicableMethod method, TicablePort port)
     	break;
 
   	default:
-    		printl1(2, "bad argument to macos_map_io (invalid port %d).\n", port);
+    		printl1(2, "bad argument (invalid port).\n");
 		return ERR_ILLEGAL_ARG;
 	break;
 	}
@@ -122,25 +109,18 @@ static int macos_map_io(TicableMethod method, TicablePort port)
 }
 
 
-int macos_register_cable(TicableType type, TicableLinkCable *lc)
+int macos_register_cable(CableType type, CableLinkCable *lc)
 {
 	int ret;
 
 	// map I/O
-	ret = macos_map_io((TicableMethod)method, port);
+	ret = macos_map_io((CableMethod)method, port);
 	if(ret)
 		return ret;
-
-	// set fields to default values
-	nul_register_cable(lc);
 	
 	// set the link cable
 	printl1(0, _("registering cable...\n"));
     	switch (type) {
-		case LINK_NUL:
-                nul_register_cable(lc);
-                break;
-
     	case LINK_TGL:
     		if(port != OSX_SERIAL_PORT)
 			return ERR_INVALID_PORT;
@@ -156,7 +136,7 @@ int macos_register_cable(TicableType type, TicableLinkCable *lc)
 		break;*/
 
     	default:
-	      	printl1(2, _("bad argument to macos_register_cable (invalid cable type %d).\n"), type);
+	      	printl1(2, _("invalid argument (bad cable)."));
 	      	return ERR_ILLEGAL_ARG;
 		break;
     	}

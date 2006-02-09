@@ -1,8 +1,8 @@
 /* Hey EMACS -*- linux-c -*- */
 /* $Id$ */
 
-/*  libticables - Ti Link Cable library, a part of the TiLP project
- *  Copyright (C) 1999-2004  Romain Lievin
+/*  libCables - Ti Link Cable library, a part of the TiLP project
+ *  Copyright (C) 1999-2005  Romain Lievin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,31 +31,35 @@
   mine. This allowed me to find why my routines was so slow !
 */
 
-#ifndef __TICABLE_TIMEOUT__
-#define __TICABLE_TIMEOUT__
+#ifndef __CABLE_TIMEOUT__
+#define __CABLE_TIMEOUT__
 
 /*
-  Platform independant time measurement & timeout management
-  - toSTART: init variable
-  - toELAPSED: return TRUE if max tenth of seconds have elapsed
-  - toCURRENT: return the number of elapsed seconds
+  Platform independant time measurement (in milli-seconds) 
+  and timeout management (in tenth of seconds)
+  - TO_START:   retrieve time (starting point)
+  - TO_CURRENT: return the number of milli-seconds elapsed since TO_START()
+  - TO_ELAPSED: return TRUE if max tenth of seconds have elapsed
 */
 
-#if defined(__WIN32__) && !defined(__MINGW32__)
+// I don't want to include windows.h here.
 //# include <windows.h>
 //typedef DWORD tiTIME;
-// I don't want to include windows.h here:
 typedef unsigned long tiTIME;
-# define  toSTART(ref)          { (ref)=GetTickCount(); }
-# define  toELAPSED(ref, max)   ( (int)(GetTickCount()-(ref)) > (100*max) )
-# define  toCURRENT(ref)        ( (float)(GetTickCount()-(ref)) / 1000 )
+
+#if defined(__WIN32__) && !defined(__MINGW32__)
+
+# define  TO_START(ref)          { (ref) = GetTickCount(); }
+# define  TO_CURRENT(ref)        ( GetTickCount() - (ref) )
+# define  TO_ELAPSED(ref, max)   ( TO_CURRENT(ref) > (unsigned int)(100*max) )
 
 #else
+
 # include <time.h>
-typedef clock_t tiTIME;
-# define  toSTART(ref)	       { (ref)=clock(); }
-# define  toELAPSED(ref, max)  ( (clock()-(ref)) > ((max)/10.0*CLOCKS_PER_SEC))
-# define  toCURRENT(ref)       ( (float)(clock()-(ref))/CLOCKS_PER_SEC )
+# define  TO_START(ref)         { (ref) = ((1000*clock()) / CLOCKS_PER_SEC); }
+# define  TO_CURRENT(ref)       ( (1000*clock()) / CLOCKS_PER_SEC - (ref) )
+# define  TO_ELAPSED(ref, max)  ( TO_CURRENT(ref) > (100*(max)) )
+
 #endif
 
 #endif

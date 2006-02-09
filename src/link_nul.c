@@ -1,8 +1,8 @@
 /* Hey EMACS -*- linux-c -*- */
-/* $Id: nul_link.c 370 2004-03-22 18:47:32Z roms $ */
+/* $Id$ */
 
-/*  libticables - Ti Link Cable library, a part of the TiLP project
- *  Copyright (C) 1999-2004  Romain Lievin
+/*  libCables - Ti Link Cable library, a part of the TiLP project
+ *  Copyright (C) 1999-2005  Romain Lievin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,105 +26,97 @@
 #include <config.h>
 #endif
 
-
 #include <stdio.h>
 #include "stdints.h"
 
-#include "timeout.h"
-#include "export.h"
-#include "cabl_err.h"
-#include "cabl_def.h"
-#include "logging.h"
-#include "externs.h"
+#include "ticables.h"
+#include "gettext.h"
 
-
-int nul_init()
-{
-  return 0;
-}
-
-int nul_open()
-{
-  return 0;
-}
-
-int nul_put(uint8_t data)
-{
-  return 0;
-}
-
-int nul_get(uint8_t * d)
-{
-  return 0;
-}
-
-int nul_probe()
-{
-  return 0;
-}
-
-int nul_close()
-{
-  return 0;
-}
-
-int nul_exit()
-{
-  return 0;
-}
-
-int nul_check(int *status)
-{
-  *status = STATUS_NONE;
-  return 0;
-}
-
-int nul_set_red_wire(int b)
-{
-  return 0;
-}
-
-int nul_set_white_wire(int b)
-{
-  return 0;
-}
-
-int nul_get_red_wire()
-{
-  return 1;
-}
-
-int nul_get_white_wire()
-{
-  return 1;
-}
-
-int nul_supported()
-{
-  return SUPPORT_OFF;
-}
-
-int nul_reset()
+int nul_prepare(CableHandle *h)
 {
 	return 0;
 }
 
-int nul_register_cable(TicableLinkCable * lc, TicableMethod method)
+int nul_probe(CableHandle *h)
 {
-  lc->init = nul_init;
-  lc->open = nul_open;
-  lc->put = nul_put;
-  lc->get = nul_get;
-  lc->close = nul_close;
-  lc->exit = nul_exit;
-  lc->probe = nul_probe;
-  lc->check = nul_check;
-  lc->reset = nul_reset;
-
-  lc->set_red_wire = nul_set_red_wire;
-  lc->set_white_wire = nul_set_white_wire;
-  lc->get_red_wire = nul_get_red_wire;
-  lc->get_white_wire = nul_get_white_wire;
-
-  return 0;
+	return 0;
 }
+
+int nul_open(CableHandle *h)
+{
+	return 0;
+}
+
+int nul_close(CableHandle *h)
+{
+	return 0;
+}
+
+int nul_reset(CableHandle *h)
+{
+	return 0;
+}
+
+int nul_put(CableHandle *h, uint8_t *data, uint32_t len)
+{
+	return 0;
+}
+
+int nul_get(CableHandle *h, uint8_t *data, uint32_t len)
+{
+	return 0;
+}
+
+int nul_check(CableHandle *h, int *status)
+{
+	*status = STATUS_NONE;
+	return 0;
+}
+
+int nul_set_red_wire(CableHandle *h, int b)
+{
+	return 0;
+}
+
+int nul_set_white_wire(CableHandle *h, int b)
+{
+	return 0;
+}
+
+int nul_get_red_wire(CableHandle *h)
+{
+	return 1;
+}
+
+int nul_get_white_wire(CableHandle *h)
+{
+	return 1;
+}
+
+const CableFncts cable_nul = 
+{
+	CABLE_NUL,
+	"NUL",
+	N_("Dummy link"),
+	N_("Dummy link used when no cable is set"),
+	0,
+	&nul_prepare,
+	&nul_open, &nul_close, &nul_reset, &nul_probe, NULL,
+	&nul_put, &nul_get, &nul_check,
+	&nul_set_red_wire, &nul_set_white_wire,
+	&nul_get_red_wire, &nul_get_white_wire,
+};
+
+/* no const ! */ CableFncts cable_ilp =
+{
+	CABLE_ILP,
+	"ILP",
+	N_("Dummy link for TiEmu"),
+	N_("Internal Link Port cable for TiEmu (internal use)"),
+	!0,
+	&nul_prepare,
+	&nul_open, &nul_close, &nul_reset, &nul_probe, NULL,
+	&nul_put, &nul_get, &nul_check,
+	&nul_set_red_wire, &nul_set_white_wire,
+	&nul_get_red_wire, &nul_get_white_wire,
+};

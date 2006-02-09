@@ -1,44 +1,57 @@
 SubVersion: $Id$
 
-To do: 
-	- USB pass-thru support
-	- bug with API mode (Linux & Windows): may not work with some calcs ?!
-
-Checking: valgrind & splint
-	
 Log:
 
-- 07/10/2005, version 3.9.7: roms
-	Added support of TiEmu VL as implemented in the ticables2 library (compatibility).
+- 08/02/2006, version 0.0.5: roms
+	- changed information message in check_for_libusb according to bug #1372369.
 
-- 07/09/2005, version 3.9.6: roms
-	Added count number of TiEmu VL instances so that read are non-blocking
-	if the other side is not present.
-	Automatically bind TiEmu to port #2 if port #1 is already in use.
+- 19/01/2006, version 0.0.4: roms
+	- fixed bad error code in 'slv_prepare' for SilverLink
+	- added a COM wrapper with VBA sample program
+	- free'd pointers are systematically NULL'ified
+	- fixed mis-behaviour in ticables_cable_probe
+	- fixed severe bug in ticable_probe_finished (the allocated array was too small)
+	- check_for_tty & check_for_parport now tests for hardware presence
+	  => don't probe unavailable port any longer
 
-- 29/07/2005, version 3.9.5: roms
-	Added ticable_link_reset function (needed by TiEmu for proper operation and present
-	in ticables2).
-
-- 22/07/2005: jb
-	configure.ac: Generic fallback case for all Linux hosts.
-
-- 20/07/2005, version 3.9.4: roms
-	Fixed new gcc4.0 warnings.
+- 25/09/2005, version 0.0.3: roms
+	- modified TiEmu virtual link for Windows: don't use .shared section 
+	any more. This breaks compat with older revision of the library but 
+	we are still in beta stage.
+	- "fixed" TiEmu virtual link for Linux: it seems it has never been
+	used/tested because it was un-finished ?!
+	- check for shm existence (tie_prepare)
 	
-- 12/07/2005, version 3.9.3: roms
-	"Low-level access cable functions may be set to NULL on some cables: set to nul_cable instead."
-		Done for the Gray Link !
+- 14/09/2005, version 0.0.2: roms
+	- fixed compilation issues with MinGW
+	- check mode supported by SilverLink under Linux (Kevin)
+	- rewritten GrayLink support (WaitCommEvent is broken)
+	- tempo for link opening
+	- reset cable at opening stage
+	- fixed build of doc/ (Tijl)
+	- *BSD port (Tijl)
+	- linkport cable for specific TiEmu use
+	- some enhancements
 
-- 25/05/2005, version 3.9.2: roms
-	Removed AVRlink support (avoid clashing on exported baud_rate symbol).
+- 02/05/2005, version 0.0.1: roms
+	- API frozen
+	- added working probing support
+	- clean-up
 
-- 15/05/2005, version 3.9.1: roms
-	Fixed get_attributes for random permissions (backport of ticables2).
-
-- 27/04/2005, version 3.9.0: roms
-	Low-level access cable functions may be set to NULL on some cables: set to nul_cable instead.
-	Merged Christian "Christian Walther" <cwalther@gmx.ch> patches for Mac OS-X.
+- 27/04/2005, version 0.0.1: roms
+	- error management left untouched
+	- logging reworked (use glib)
+	- a single public header with functions & defs, others are private
+	- slightly fixed namespace sheme
+	- use strong types such as TiCalcModel, ...
+	- glib is used for logging (not very much for strings)
+	- documentation system has been changed
+	- functions pointers have been removed
+	- library has been fully documented
+	- decreased number of headers to include (1 or 3)
+	- reused code & concepts of Tijl Coosemans' libticables-3.9.0.
+	
+====[ Version II ]====
 
 - 05/03/2005, version 3.8.9: roms
 	Added gcc 4.0 -fvisibility flag support.

@@ -2,11 +2,11 @@
 // TiglUsb driver for Windows 9x/Me & 2000/XP
 // Library (user mode) for talking with the driver (kernel mode)
 //
-// Copyright (c) 2001-2002 Romain Liévin
+// Copyright (c) 2001-2005 Romain Liévin
 // roms@lpg.ticalc.org
 // http://lpg.ticalc.org/prj_usb
 //
-// July the 4th, 2002
+// May the 1st, 2005
 //
 
 /*++
@@ -37,12 +37,15 @@ Revision History:
 	11/17/97: created
 	2001: modified
 	2002: some adds
-	02/12/2002: fixed some problem of calling convention when lib is used with C++ 
-	25/05/2002: typo fixes in the function pointers
-	04/07/2002: modified for WinDDK (Windows XP)
-	06/10/2002: TiglUsbCheck added
-	08/10/2002: calling convention changed from __cdecl to __stdcall (WINAPI, VB, C++ Builder)
-        24/04/2004: API modified to use buffered write I/O (API compat broken)
+	02/12/02: fixed some problem of calling convention when lib is used with C++ 
+	25/05/02: typo fixes in the function pointers
+	04/07/02: modified for WinDDK (Windows XP)
+	06/10/02: TiglUsbCheck added
+	08/10/02: calling convention changed from __cdecl to __stdcall (WINAPI, VB, C++ Builder)
+    24/04/04: API modified to use buffered write I/O (API compat broken)
+	02/10/04: added new function to get device information (PID)
+	01/05/05: added extended functions for sending/receiving whole packets
+	01/05/05: can parse available cables with characteristics (Product ID)
 --*/
 
 #ifndef TIGLUSB_INC
@@ -68,65 +71,22 @@ extern "C" {
 	// This DLL (should) use the stdcall calling convention.
 #define  TIGLUSB_API __cdecl	//__stdcall
 
-/* ----------------------- For Internal/DDK use only --------------------- */
-
-	//
-	// Constants
-	//
-
-#define TIGLUSB_MAX_PACKET_SIZE	32	// 32 bytes max can be read or written at a time
-
-#define IN_PIPE_0  "PIPE00" // First link cable, IN pipe (TI->PC)
-#define OUT_PIPE_0 "PIPE01" // 	        		OUT pipe (PC->TI)
-#define IN_PIPE_1  "PIPE02" // Second link cable
-#define OUT_PIPE_1 "PIPE03"
-#define IN_PIPE_2  "PIPE04" // Third link cable
-#define OUT_PIPE_2 "PIPE05"
-#define IN_PIPE_3  "PIPE06" // Fourth link cable
-#define OUT_PIPE_3 "PIPE07"
-
-	//
-	// API: Win32 functions
-	//
-
-// Returns an handle on the device driver or INVALID_HANDLE_VALUE otherwise
-HANDLE open_dev(void);
-
-// Returns an handle on a pipe ("PIPE00": IN or "PIPE01": OUT)
-// or INVALID_HANDLE_VALUE otherwise.
-HANDLE open_file( char *filename);
-
-// Rarely used
-void rw_dev( HANDLE hDEV );
-char *usbDescriptorTypeString(UCHAR bDescriptorType );
-char *usbEndPointTypeString(UCHAR bmAttributes);
-char *usbConfigAttributesString(UCHAR bmAttributes);
-
-// Do a formatted ascii dump to console of USB 
-// configuration, interface, and endpoint descriptors
-int  dumpUsbConfig(void);
-
-// IOCTL operations: returns 0 if sucessful, -1 otherwise.
-int resetPipe(void);				// reset current pipe (??)
-int resetDevice(void);				// reset device (dangerous)
-int resetPipes(void);				// reset IN & OUT pipes
-
-
 /* ----------------------- For Developper use --------------------- */
 
 	//
 	// API: Win32 functions (exports)
 	//
 
-// Versionning
+// Versionning (3.0 & 3.2)
 TIGLUSB_EXP PCHAR TIGLUSB_API TiglUsbVersion (VOID);	// Get version
 
-// I/O operations on device
-TIGLUSB_EXP INT TIGLUSB_API TiglUsbOpen (VOID);		    // Open a device instance
+// 3.0: I/O operations on device (use it if you have just 1 link cable)
+TIGLUSB_EXP INT TIGLUSB_API TiglUsbOpen  (VOID);		// Open a device instance
 TIGLUSB_EXP INT TIGLUSB_API TiglUsbClose (VOID);	    // Close the device instance
 
-TIGLUSB_EXP INT TIGLUSB_API TiglUsbCheck(INT *status);	// Check whether data is available
-TIGLUSB_EXP INT TIGLUSB_API TiglUsbRead (UCHAR *data);	// Read a byte from cable
+TIGLUSB_EXP INT TIGLUSB_API TiglUsbCheck (INT *status);	// Check whether data is available
+
+TIGLUSB_EXP INT TIGLUSB_API TiglUsbRead  (UCHAR *data);	// Read a byte from cable
 TIGLUSB_EXP INT TIGLUSB_API TiglUsbWrite (UCHAR data);	// Write a byte to cable
 
 TIGLUSB_EXP INT TIGLUSB_API TiglUsbFlush (VOID);	    // Flush write buffer
@@ -135,13 +95,44 @@ TIGLUSB_EXP INT TIGLUSB_API TiglUsbReset (VOID);	    // Reset r/w pipes
 TIGLUSB_EXP INT TIGLUSB_API TiglUsbSetTimeout (INT ts);	// Set timeout value (in tenth of seconds)
 TIGLUSB_EXP INT TIGLUSB_API TiglUsbGetTimeout (INT *ts);// Retrieve timeout value
 
-// Function pointers for dynamic loading
+// 3.4: use it for multiple cable support
+TIGLUSB_EXP INT TIGLUSB_API TiglUsbProbe2 (PUINT* list);// Parse available cables (0-terminated array)
+
+TIGLUSB_EXP INT TIGLUSB_API TiglUsbOpen2  (INT id);		// Open a device instance
+TIGLUSB_EXP INT TIGLUSB_API TiglUsbClose2 (INT handle); // Close the device instance
+
+TIGLUSB_EXP INT TIGLUSB_API TiglUsbFlush2 (INT handle);	// Flush write buffer (for use with Read2/Write2 only)
+TIGLUSB_EXP INT TIGLUSB_API TiglUsbReset2 (INT handle); // Reset r/w pipes
+
+TIGLUSB_EXP INT TIGLUSB_API TiglUsbRead2  (INT handle,
+										   UCHAR *data);// Read a byte from cable
+TIGLUSB_EXP INT TIGLUSB_API TiglUsbWrite2 (INT handle,
+										   UCHAR data);	// Write a byte to cable
+
+TIGLUSB_EXP INT TIGLUSB_API TiglUsbReads2 (INT handle,
+										   UCHAR *data,
+										   INT len);	// Read bytes from cable
+
+TIGLUSB_EXP INT TIGLUSB_API TiglUsbWrites2(INT handle,
+										   UCHAR *data,
+										   INT len);	// Write bytes to cable
+
+TIGLUSB_EXP INT TIGLUSB_API TiglUsbCheck2 (INT handle, 
+										   INT *status);// Check whether data is available
+
+TIGLUSB_EXP INT TIGLUSB_API TiglUsbSetTimeout2 (INT handle,
+												INT ts);// Set timeout value (in tenth of seconds)
+TIGLUSB_EXP INT TIGLUSB_API TiglUsbGetTimeout2 (INT handle,
+												INT *ts);// Retrieve timeout value
+
+// 3.0: function pointers for dynamic loading
 typedef PCHAR (TIGLUSB_API *TIGLUSB_VERSION)    (VOID);
 
 typedef INT (TIGLUSB_API *TIGLUSB_OPEN)	        (VOID);
 typedef INT (TIGLUSB_API *TIGLUSB_CLOSE)        (VOID);
 
 typedef INT (TIGLUSB_API *TIGLUSB_CHECK)        (PINT);
+
 typedef INT (TIGLUSB_API *TIGLUSB_READ)	        (PUCHAR);
 typedef INT (TIGLUSB_API *TIGLUSB_WRITE)	    (UCHAR);
 
@@ -151,7 +142,26 @@ typedef INT (TIGLUSB_API *TIGLUSB_RESET)        (VOID);
 typedef INT	(TIGLUSB_API *TIGLUSB_SETTIMEOUT)	(INT);
 typedef INT	(TIGLUSB_API *TIGLUSB_GETTIMEOUT)	(PINT);
 
-// Error codes
+// 3.2: function pointers for dynamic loading
+typedef INT (TIGLUSB_API *TIGLUSB_PROBE2)		(PUINT*);
+
+typedef INT (TIGLUSB_API *TIGLUSB_OPEN2)	    (INT);
+typedef INT (TIGLUSB_API *TIGLUSB_CLOSE2)       (INT);
+
+typedef INT (TIGLUSB_API *TIGLUSB_RESET2)       (INT);
+
+typedef INT (TIGLUSB_API *TIGLUSB_READ2)        (INT,PUCHAR);
+typedef INT (TIGLUSB_API *TIGLUSB_WRITE2)	    (INT, UCHAR);
+
+typedef INT (TIGLUSB_API *TIGLUSB_READS2)	    (INT,PUCHAR,INT);
+typedef INT (TIGLUSB_API *TIGLUSB_WRITES2)	    (INT,PUCHAR,INT);
+
+typedef INT (TIGLUSB_API *TIGLUSB_CHECK2)       (INT,PINT);
+
+typedef INT	(TIGLUSB_API *TIGLUSB_SETTIMEOUT2)	(INT,INT);
+typedef INT	(TIGLUSB_API *TIGLUSB_GETTIMEOUT2)	(INT,PINT);
+
+// Error codes (TIGLERR for 3.0)
 #define TIGLERR_NO_ERROR			    0
 
 #define TIGLERR_DEV_ALREADY_OPEN		1
@@ -162,8 +172,24 @@ typedef INT	(TIGLUSB_API *TIGLUSB_GETTIMEOUT)	(PINT);
 #define TIGLERR_WRITE_ERROR			    6
 #define TIGLERR_READ_ERROR			    7
 #define TIGLERR_RESET_FAILED            8
+#define TIGLERR_MALLOC					9
+#define TIGLERR_ERRMAX                  10
 
-#define TIGLERR_ERRMAX                  9
+// Error codes (TIGLERR2 for 3.2)
+#define TIGLERR2_NO_ERROR			    0
+
+#define TIGLERR2_DEV_ALREADY_OPEN		-1
+#define TIGLERR2_DEV_OPEN_FAILED		-2
+#define TIGLERR2_FLUSH_FAILED			-3   // not used
+#define TIGLERR2_WRITE_TIMEOUT			-4
+#define TIGLERR2_READ_TIMEOUT			-5
+#define TIGLERR2_WRITE_ERROR			-6
+#define TIGLERR2_READ_ERROR			    -7
+#define TIGLERR2_RESET_FAILED           -8
+#define TIGLERR2_MALLOC					-9
+#define TIGLERR2_HANDLE_MAX				-10
+
+#define TIGLERR_HANDLE_MAX				-11
 
 
 /* If you need Dynamic Liking, defines your pointers like this:
@@ -192,6 +218,76 @@ typedef INT	(TIGLUSB_API *TIGLUSB_GETTIMEOUT)	(PINT);
 
   FreeLibrary(hDLL);
 */
+
+/* ----------------------- For Internal/DDK use only --------------------- */
+
+	//
+	// Constants
+	//
+
+#define	USB_MAX		4		// 4 cables max
+
+#define IN_PIPE  "PIPE00" // IN  pipe (TI->PC)
+#define OUT_PIPE "PIPE01" // OUT pipe (PC->TI)
+
+#define VID_TI		0x0451	// Texas Instruments, Inc.
+#define PID_TIGLUSB 0xE001	// TI-GRAPH LINK USB (SilverLink)
+#define PID_TI89TM  0xE004	// TI89 Titanium w/ embedded USB port
+#define PID_TI84P   0xE008	// TI84+ w/ embedded USB port
+
+typedef struct 
+{
+	UINT		number;	// link cable number
+	UINT		timeout;// timeout
+
+	UINT		max_ps;	// packet size
+
+	HANDLE	hRead;		// read pipe
+	HANDLE  hWrite;		// write pipe
+
+	UCHAR	rBuf[64];	// rx buf
+	DWORD	nBytesRead;
+	PUCHAR	rBufPtr;
+
+	UCHAR	wBuf[64];	// tx buf
+	DWORD	nBytesWrite;
+	PUCHAR	wBufPtr;
+
+	OVERLAPPED olp;		// for overlapped i/o
+
+	int		open;
+	int		busy;
+
+	HANDLE	hDev;		// handle on device (driver)
+	UINT	pid;		// Product ID
+
+} TiglUsbHandle;
+
+	//
+	// API: Win32 functions
+	//
+
+// Returns an handle on the device driver or INVALID_HANDLE_VALUE otherwise
+HANDLE open_dev (UINT number);
+
+// Returns an handle on a pipe ("PIPE00": IN or "PIPE01": OUT)
+// or INVALID_HANDLE_VALUE otherwise.
+HANDLE open_file (UINT number, char *filename);
+ 
+// Do a formatted ascii dump to console of USB 
+// configuration, interface, and endpoint descriptors
+int  dumpUsbConfig (HANDLE hDEV );
+
+// IOCTL operations: returns 0 if sucessful, -1 otherwise.
+int resetPipe (HANDLE hDEV );		// reset current pipe (??)
+int resetDevice (HANDLE hDEV );		// reset device (dangerous)
+int resetPipes (HANDLE hDEV );		// reset IN & OUT pipes
+
+// Retrieve maximum packet size
+int get_max_ps (HANDLE, PUINT, PUINT);
+
+// Parse available cables
+UINT list_dev(PUINT* list);
 
 #ifdef __cplusplus
 }

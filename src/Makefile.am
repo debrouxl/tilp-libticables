@@ -1,39 +1,31 @@
 ## Process this file with automake to produce Makefile.in
 
-AM_CPPFLAGS = -I$(top_srcdir)/intl
 AM_CFLAGS = -Wall
 
 # libraries and files to compile and install
-lib_LTLIBRARIES = libticables.la
-libticablesincludedir = $(includedir)/tilp
-libticablesinclude_HEADERS = \
-	cabl_def.h cabl_err.h cabl_int.h cabl_ver.h \
-	export.h \
-	ticables.h \
-	timeout.h
+lib_LTLIBRARIES = libticables2.la
+libticablesincludedir = $(includedir)/tilp2
+libticablesinclude_HEADERS = ticables.h export1.h stdints.h timeout.h
 
 # build instructions
-libticables_la_CPPFLAGS = -DLOCALEDIR=\"$(datadir)/locale\" @LIBUSB_CFLAGS@
-libticables_la_LIBADD = @LTLIBINTL@ @LIBUSB_LIBS@ @IOKIT_LIBS@
-libticables_la_LDFLAGS = -no-undefined -version-info @LT_LIBVERSION@
-libticables_la_SOURCES = *.h \
+libticables2_la_CPPFLAGS = -I$(top_srcdir)/intl \
+	-DLOCALEDIR=\"$(datadir)/locale\" \
+	@GLIB_CFLAGS@ @LIBUSB_CFLAGS@
+libticables2_la_LIBADD = @GLIB_LIBS@ @LTLIBINTL@ @LIBUSB_LIBS@
+libticables2_la_LDFLAGS = -no-undefined -version-info @LT_LIBVERSION@
+libticables2_la_SOURCES = *.h \
+	data_log.c \
 	detect.c \
-	direct.c \
 	error.c \
-	intrface.c \
 	ioports.c \
-	link_dev.c link_nul.c link_par.c link_ser.c \
-	link_slv.c link_tie.c link_tig.c link_vti.c link_vtl.c \
+	link_gry.c link_nul.c link_par.c link_blk.c \
+	link_slv.c link_tie.c link_vti.c link_xxx.c \
 	logging.c \
-	mapping.c \
-	none.c \
-	printl.c \
-	type2str.c \
-	verbose.c
+	probe.c \
+	ticables.c \
+	type2str.c
 
 EXTRA_DIST = bsd/* linux/* macos/* win32/*
 
-dos2unix:
-	dos2unix
-	lowercase
-	uppercase
+wc:
+	wc *.c *.h ./linux/*.c ./linux/*.h ./win32/*.c ./win32/*.h ./bsd/*.c ./bsd/*.h ./macos/*.c ./macos/*.h

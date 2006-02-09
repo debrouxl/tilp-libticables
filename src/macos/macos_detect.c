@@ -1,8 +1,8 @@
 /* Hey EMACS -*- macos-c -*- */
 /* $Id$ */
 
-/*  libticables - Ti Link Cable library, a part of the TiLP project
- *  Copyright (C) 1999-2004  Romain Lievin
+/*  libCables - Ti Link Cable library, a part of the TiLP project
+ *  Copyright (C) 1999-2005  Romain Lievin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ int macos_detect_os(char **os_type)
 	return 0;
 }
 
-int macos_detect_port(TicablePortInfo * pi)
+int macos_detect_port(CablePortInfo * pi)
 {
 	// I will put them later...
 

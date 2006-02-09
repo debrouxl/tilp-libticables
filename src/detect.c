@@ -1,5 +1,5 @@
 /* Hey EMACS -*- linux-c -*- */
-/* $Id$ */
+/* $Id: detect.c 663 2004-04-28 16:25:13Z tijl $ */
 
 /*  libticables - Ti Link Cable library, a part of the TiLP project
  *  Copyright (C) 1999-2004  Romain Lievin
@@ -33,103 +33,13 @@
 #endif
 
 #if defined(__LINUX__)
-#include "linux/linux_detect.c"
+#include "linux/detect.c"
 #elif defined(__MACOSX__)
-#include "macos/macos_detect.c"
+#include "macos/detect.c"
 #elif defined(__BSD__)
-#include "bsd/bsd_detect.c"
+#include "bsd/detect.c"
 #elif defined(__WIN32__)
-#include "win32/win32_detect.c"
+#include "win32/detect.c"
 #else
 #include "none.h"
 #endif
-
-/*
-  This function tries to detect the Operating System type.
-  The returned value can be:
-  - "Linux"
-  - "Mac OS X"
-  - "Windows9x" for Windows95, 98 or Me
-  - "WindowsNT" for WindowsNT4 or 2000 or XP
-  - "unknown" if failed
-*/
-TIEXPORT int TICALL ticable_detect_os(char **os_type)
-{
-#if defined(__LINUX__)
-	linux_detect_os(os_type);
-#elif defined(__MACOSX__)
-  	macos_detect_os(os_type);
-#elif defined(__BSD__)
-  	bsd_detect_os(os_type);
-#elif defined(__WIN32__)
-	win32_detect_os(os_type);
-#else
-  	*os_type = _("unknown");
-  	return -1;
-#endif
-  	return 0;
-}
-
-
-/* 
-   This function attempts to detect which ports are available according 
-   to the operating system type.
-*/
-TIEXPORT int TICALL ticable_detect_port(TicablePortInfo * pi)
-{
-#if defined(__LINUX__)
-	return linux_detect_port(pi);
-#elif defined(__MACOSX__)
-	return macos_detect_port(pi);
-#elif defined(__BSD__)
-	return bsd_detect_port(pi);	
-#elif defined(__WIN32__)
-  	return win32_detect_port(pi);
-#else
-	return -1;
-#endif
-}
-
-
-/*
-  This function attemps to detect a link cable on the listed ports.
-  The returned value is placed in pi.
-  
-  Beware: this routine can hang up your mouse if you have a mouse connected 
-  on a serial port other than the first one (under Linux or Windows9x, 
-  not NT4/2000)
-*/
-TIEXPORT int TICALL ticable_detect_cable(TicablePortInfo * pi)
-{
-	return 0;
-}
-
-
-/*
-  This function tries to detect a link cable.
-  The returned value is placed in os and pi.
-*/
-int TICALL ticable_detect_all(char **os, TicablePortInfo * pi)
-{
-	return 0;
-}
-
-
-/*
-	Determine available I/O resources (IO_...).
-*/
-int detect_resources(void)
-{
-#if defined(__LINUX__)
-	return linux_detect_resources();
-#elif defined(__MACOSX__)
-	return macos_detect_resources();
-#elif defined(__BSD__)
-	return bsd_detect_resources();
-#elif defined(__WIN32__)
-  	return win32_detect_resources();
-#else
-	return -1;
-#endif
-  	return 0;
-}

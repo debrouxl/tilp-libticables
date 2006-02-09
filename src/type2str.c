@@ -1,8 +1,8 @@
 /* Hey EMACS -*- linux-c -*- */
 /* $Id$ */
 
-/*  libticables - Ti Link Cable library, a part of the TiLP project
- *  Copyright (C) 1999-2004  Romain Lievin
+/*  libCables - Ti Link Cable library, a part of the TiLP project
+ *  Copyright (C) 1999-2005  Romain Lievin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,172 +19,108 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include <stdio.h>
 #include <string.h>
-
 #include "gettext.h"
-#include "cabl_def.h"
+#include "ticables.h"
 
-static const char *TICABLETYPE[TICABLETYPE_MAX] = {
-  N_("none"), N_("GrayLink"), N_("BlackLink"), N_("ParallelLink"), N_("AVRlink"), N_("virtual"), N_("TiEMu"),
-  N_("VTi"), N_("obsolete"), N_("SilverLink"),
-};
-
-TIEXPORT const char *TICALL ticable_cabletype_to_string(TicableType type)
-{	
-	int v;
-
-	if (type < TICABLETYPE_MAX)
-    		v = type;
-  	else
-    		v = 0;
-
-  	return TICABLETYPE[v];
+/**
+ * ticables_model_to_string:
+ * @model: a cable model.
+ *
+ * Do an integer to string conversion.
+ *
+ * Return value: a string like "BlackLink".
+ **/
+TIEXPORT const char *TICALL ticables_model_to_string(CableModel model)
+{
+  	switch (model) 
+	{
+	case CABLE_NUL: return "null";
+	case CABLE_GRY: return "GrayLink";
+	case CABLE_BLK: return "BlackLink";
+	case CABLE_PAR: return "Parallel";
+	case CABLE_SLV: return "SilverLink";
+	case CABLE_VTI: return "VTi";
+	case CABLE_TIE: return "TiEmu";
+	case CABLE_VTL: return "virtual";
+	case CABLE_ILP: return "linkport";
+	default: return "unknown";
+	}
 }
 
-
-TIEXPORT TicableType TICALL ticable_string_to_cabletype(const char *str)
+/**
+ * ticables_string_to_model:
+ * @str: a cable model as string like "BlackLink".
+ *
+ * Do a string to integer conversion.
+ *
+ * Return value: a cable model.
+ **/
+TIEXPORT CableModel TICALL ticables_string_to_model(const char *str)
 {
-  	int i;
+	if(!strcmp(str, "null"))
+		return CABLE_NUL;
+	else if(!strcmp(str, "GrayLink"))
+		return CABLE_GRY;
+	else if(!strcmp(str, "BlackLink"))
+		return CABLE_BLK;
+	else if(!strcmp(str, "Parallel"))
+		return CABLE_PAR;
+	else if(!strcmp(str, "SilverLink"))
+		return CABLE_SLV;
+	else if(!strcmp(str, "VTi"))
+		return CABLE_VTI;
+	else if(!strcmp(str, "TiEmu"))
+		return CABLE_TIE;
+	else if(!strcmp(str, "virtual"))
+		return CABLE_VTL;
+	else if(!strcmp(str, "linkport"))
+		return CABLE_ILP;
 
-  	for (i = 0; i < TICABLETYPE_MAX; i++) {
-    		if (!strcmp(TICABLETYPE[i], str))
-      			break;
-  	}
-  
-  	if (i == TICABLETYPE_MAX)
-    		return 0;
-
-  	return i;
+	return CABLE_NUL;
 }
 
-
-TIEXPORT const char *TICALL ticable_baudrate_to_string(TicableBaudRate br)
+/**
+ * ticables_port_to_string:
+ * @port: a link port.
+ *
+ * Do an integer to string conversion.
+ *
+ * Return value: a string like "#1".
+ **/
+TIEXPORT const char *TICALL ticables_port_to_string(CablePort port)
 {
-  	switch (br) {
-  	case BR9600:  return "9600 bauds";
-  	case BR19200: return "19200 bauds";
-  	case BR38400: return "38400 bauds";
-  	case BR57600: return "57600 bauds";
-  	default: return "unknown";
-  	}
+  	switch (port) 
+	{
+	case PORT_0: return "null";
+	case PORT_1: return "#1";
+	case PORT_2: return "#2";
+	case PORT_3: return "#3";
+	case PORT_4: return "#4";
+	default: return "unknown";	
+	}
 }
 
-
-TIEXPORT TicableBaudRate TICALL ticable_string_to_baudrate(const char *str)
+/**
+ * ticables_string_to_port:
+ * @str: a link port as string like "#1".
+ *
+ * Do a string to integer conversion.
+ *
+ * Return value: a link port.
+ **/
+TIEXPORT CablePort TICALL ticables_string_to_port(const char *str)
 {
-	if(!strcmp(str, "9600 bauds"))
-		return BR9600;
-  	else if(!strcmp(str, "19200 bauds"))
-  		return BR19200;
-  	else if(!strcmp(str, "38400 bauds"))
-  		return BR38400;
-  	else if(!strcmp(str, "57600 bauds"))
-  		return BR57600;
+	if(!strcmp(str, "null"))
+		return PORT_0;
+	else if(!strcmp(str, "#1"))
+		return PORT_1;
+	else if(!strcmp(str, "#2"))
+		return PORT_2;
+	else if(!strcmp(str, "#3"))
+		return PORT_3;
+	else if(!strcmp(str, "#4"))
+		return PORT_4;
 
-  		return BR9600;
-}
-
-
-TIEXPORT const char *TICALL ticable_hfc_to_string(TicableHfc hfc)
-{
-	if(hfc == HFC_ON)
-		return _("on");
-	else
-		return _("off");
-}
-
-
-TIEXPORT TicableHfc TICALL ticable_string_to_hfc(const char *str)
-{
-	if(!strcmp(str, _("on")))
-		return HFC_ON;
-	else
-		return HFC_OFF;
-}
-
-static const char *TICABLEPORT[TICABLEPORT_MAX] = {
-  N_("custom"), 
-  N_("parallel port #1"), N_("parallel port #2"), N_("parallel port #3"), 
-  N_("serial port #1"), N_("serial port #2"), 
-  N_("serial port #3"), N_("serial port #4"), 
-  N_("virtual port #1"), N_("virtual port #2"), 
-  N_("USB port #1"), N_("USB port #2"), N_("USB port #3"), N_("USB port #4"), 
-  N_("serial port"), N_("USB port"), 
-  N_("null"),
-};
-
-TIEXPORT const char *TICALL ticable_port_to_string(TicablePort port)
-{
-	int v;
-
-	if (port < TICABLEPORT_MAX)
-    		v = port;
-  	else
-    		v = 0;
-
-  	return TICABLEPORT[v];
-}
-
-TIEXPORT TicablePort TICALL ticable_string_to_port(const char *str)
-{
-	int i;
-
-  	for (i = 0; i < TICABLEPORT_MAX; i++) {
-    		if (!strcmp(TICABLEPORT[i], str))
-      			break;
-  	}
-  
-  	if (i == TICABLEPORT_MAX)
-    		return 0;
-
-  	return i;
-}
-
-
-TIEXPORT 
-const char *TICALL ticable_method_to_string(TicableMethod method)
-{
-	static char buffer[33];
-
-	strcpy(buffer, _("unknown"));
-	
-	if (method & IOM_ASM)
-		strcpy(buffer, _("direct access (asm)"));
-	if (method & IOM_API)
-		strcpy(buffer, _("direct access (api)"));
-	if (method & IOM_DRV)
-		strcpy(buffer, _("kernel mode (module)"));
-	if (method & IOM_IOCTL)
-		strcpy(buffer, _("user mode (ioctl)"));
-	if (method & IOM_NULL)
-		strcpy(buffer, _("null"));
-
-	return buffer;
-}
-
-
-TIEXPORT const char *TICALL ticable_display_to_string(TicableDisplay disp)
-{
-	if(disp == DSP_OFF)
-		return _("off");
-	else if(disp == DSP_ON)
-		return _("on");
-	else if(disp == DSP_CLOSE)
-		return _("closed");
-
-	return _("off");
-}
-
-
-TIEXPORT TicableDisplay TICALL ticable_string_to_display(const char *str)
-{
-	if(!strcmp(str, _("on")))
-		return DSP_ON;
-	else if(!strcmp(str, _("off")))
-		return DSP_OFF;
-	else if(!strcmp(str, _("closed")))
-		return DSP_CLOSE;
-
-	return DSP_OFF;
+	return PORT_0;
 }

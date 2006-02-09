@@ -1,8 +1,8 @@
 /* Hey EMACS -*- linux-c -*- */
 /* $Id$ */
 
-/*  libticables - Ti Link Cable library, a part of the TiLP project
- *  Copyright (C) 1999-2004  Romain Lievin
+/*  libCables - Ti File Format library, a part of the TiLP project
+ *  Copyright (C) 1999-2005  Romain Lievin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,31 +19,20 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef LOGGING_H
-#define LOGGING_H
+#ifndef __TICABLES_LOGGING__
+#define __TICABLES_LOGGING__
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <glib.h>
 
-#include <stdio.h>
+#define LOG_DOMAIN	"ticables"
 
-int start_logging();
-int log_data(int data);
-int stop_logging();
+void ticables_debug(const gchar *format, ...);
+void ticables_info(const gchar *format, ...);
+void ticables_message(const gchar *format, ...);
+void ticables_warning(const gchar *format, ...);
+void ticables_critical(const gchar *format, ...);
+void ticables_error(const gchar *format, ...);
 
-int start_void();
-int log_void();
-int stop_void();
-
-#ifdef ENABLE_LOGGING
-# define START_LOGGING(); start_logging();
-# define LOG_DATA(d);     log_data(d);
-# define STOP_LOGGING();  stop_logging();
-#else
-# define START_LOGGING();
-# define LOG_DATA(d);
-# define STOP_LOGGING();
-#endif
+#define TRYC(x) { int aaa_; if((aaa_ = (x))) return aaa_; }
 
 #endif

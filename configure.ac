@@ -3,15 +3,11 @@ dnl $Id$
 
 # Init.
 AC_PREREQ(2.57)
-AC_INIT(libTiCables, 3.9.7, [tilp-users@lists.sourceforge.net])
+AC_INIT(libticables2, 0.0.4, [tilp-users@lists.sourceforge.net])
 
-MAJOR_VERSION=3
-MINOR_VERSION=9
-MICRO_VERSION=7
-
-LT_CURRENT=`expr $MINOR_VERSION + $MAJOR_VERSION`
-LT_REVISION=$MICRO_VERSION
-LT_AGE=$MINOR_VERSION
+dnl Release versioning info
+VERSION="0.0.4"
+AC_SUBST(VERSION)
 
 dnl Library version.
 dnl current:revision:age
@@ -20,6 +16,10 @@ dnl  * If you added things to the api, increment 'current',
 dnl    reset 'revision' and increment 'age'.
 dnl  * If you changed/removed things from the api, increment 'current',
 dnl    reset 'revision' and reset 'age'.
+LT_CURRENT=0
+LT_REVISION=4
+LT_AGE=0
+LT_LIBVERSION="$LT_CURRENT:$LT_REVISION:$LT_AGE"
 AC_SUBST(LT_LIBVERSION, $LT_CURRENT:$LT_REVISION:$LT_AGE)
 
 AM_INIT_AUTOMAKE([dist-bzip2])
@@ -28,16 +28,17 @@ AM_MAINTAINER_MODE
 AC_PREFIX_DEFAULT(/usr/local)
 
 dnl Files to configure.
-AC_CONFIG_SRCDIR([src/intrface.c])
+AC_CONFIG_SRCDIR([src/ticables.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
   Makefile
   build/Makefile
+  docs/Makefile
   intl/Makefile
   po/Makefile.in
   src/Makefile
   tests/Makefile
-  ticables.pc
+  ticables2.pc
 ])
 
 # Setup libtool.
@@ -52,41 +53,42 @@ AC_PROG_MAKE_SET
 AC_PROG_LN_S
 AC_ISC_POSIX
 AC_PROG_AWK
+AC_CHECK_PROG(TFDOCGEN, tfdocgen, yes, no)
+AM_CONDITIONAL(USE_DOCGEN, test "$TFDOCGEN" != "no")
 
 # Checks for libraries.
 AM_GNU_GETTEXT
-AM_GNU_GETTEXT_VERSION(0.13.1)
+AM_GNU_GETTEXT_VERSION(0.14.5)
 
-# USB support depends on the IOKit framework on Mac OS X
-# CW 2005-05-03
-case "$host_os" in
-  darwin*)
-    IOKIT_LIBS="-framework IOKit"
-  ;;
-  *)
-    IOKIT_LIBS=
-  ;;
+PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.4.0)
+AC_SUBST(GLIB_CFLAGS)
+AC_SUBST(GLIB_LIBS)
+
+dnl Don't detect & use libusb when cross-compiling from MinGW under Linux
+case $host_os in
+*mingw*)
+	LIBUSB_CFLAGS=
+        LIBUSB_LIBS=  
+;;
+*)
+	AC_CHECK_PROG(LIBUSB_CONFIG, libusb-config, yes, no)
+	if test x$LIBUSB_CONFIG = xyes; then
+	   LIBUSB_CFLAGS=`libusb-config --cflags`
+	   LIBUSB_LIBS=`libusb-config --libs`
+	   AC_DEFINE(HAVE_LIBUSB, 1, [Define to 1 to enable libusb support.])
+	else
+	   LIBUSB_CFLAGS=
+	   LIBUSB_LIBS=
+	fi
+;;
 esac
-AC_SUBST(IOKIT_LIBS)
-
-AC_CHECK_PROG(LIBUSB_CONFIG, libusb-config, yes, no)
-if test x$LIBUSB_CONFIG = xyes; then
-  LIBUSB_CFLAGS=`libusb-config --cflags`
-  LIBUSB_LIBS=`libusb-config --libs`
-  AC_DEFINE(HAVE_LIBUSB, 1, [Define to 1 to enable libusb support.])
-else
-  LIBUSB_CFLAGS=
-  LIBUSB_LIBS=
-fi
 AC_SUBST(LIBUSB_CFLAGS)
 AC_SUBST(LIBUSB_LIBS)
 
 # Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_CHECK_HEADERS([asm/io.h sys/io.h errno.h fcntl.h inttypes.h stdint.h stdlib.h string.h strings.h sys/file.h sys/ioctl.h sys/ipc.h sys/perm.h sys/shm.h sys/stat.h sys/time.h sys/types.h termios.h unistd.h])
-AC_CHECK_HEADERS([linux/ticable.h])
-AC_CHECK_HEADERS([sys/utsname.h pwd.h grp.h linux/serial.h sys/ioctl.h])
+AC_CHECK_HEADERS([stdint.h termios.h linux/parport.h linux/ppdev.h linux/serial.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_UID_T
@@ -95,33 +97,10 @@ AC_C_CONST
 AC_HEADER_TIME
 
 # Checks for library functions.
-AC_FUNC_CLOSEDIR_VOID
 AC_PROG_GCC_TRADITIONAL
-#AC_FUNC_MALLOC
 AC_FUNC_SELECT_ARGTYPES
 AC_FUNC_STAT
-AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([bzero cfmakeraw gettimeofday memset mkfifo select strdup strerror strstr uname])
-
-# Logging
-AC_ARG_ENABLE(logging,
-  AC_HELP_STRING([--enable-logging], [enable logging]),
-  [cab_cv_enable_logging=$enableval], [])
-AC_CACHE_CHECK([whether to enable logging],
-  [cab_cv_enable_logging], [cab_cv_enable_logging=no])
-if test x$cab_cv_enable_logging = xyes; then
-  AC_DEFINE(ENABLE_LOGGING, 1, [Define to 1 to enable logging.])
-fi
-
-# Direct USB cable
-AC_ARG_ENABLE(direct-usb,
-  AC_HELP_STRING([--enable-direct-usb], [enable direct USB cable]),
-  [cab_cv_enable_direct_usb=$enableval], [])
-AC_CACHE_CHECK([whether to enable direct USB cable],
-  [cab_cv_enable_direct_usb], [cab_cv_enable_direct_usb=no])
-if test x$cab_cv_enable_direct_usb = xyes; then
-  AC_DEFINE(ENABLE_DIRECT_USB, 1, [Define to 1 to enable direct USB cable.])
-fi
+AC_CHECK_FUNCS([cfmakeraw])
 
 # Platform specific tests.
 dnl AC_CANONICAL_HOST
@@ -141,24 +120,13 @@ case "$host" in
   mips-*-linux-*)        ARCH="-D__MIPS__ -D__LINUX__" ;;
   mipsel-*-linux-*)      ARCH="-D__MIPS__ -D__LINUX__" ;;
   powerpc-*-linux-*)     ARCH="-D__PPC__  -D__LINUX__" ;;
-  sparc-*-linux-*)       ARCH="-D__SPARC__ -D__LINUX__" ;;
-  *-*-linux-*)           ARCH="-D__LINUX__" ;;
   powerpc-apple-darwin*) ARCH="-D__PPC__  -D__MACOSX__" ;;
+  s390-*-linux-*)        ARCH="-D__LINUX__" ;;
+  sh-*-linux-*)          ARCH="-D__LINUX__" ;;
+  sparc-*-linux-*)       ARCH="-D__SPARC__ -D__LINUX__" ;;
   sparc*-sun-solaris*)   ARCH="-D__SPARC__ -D__SOL__" ;;
 esac
 CFLAGS="$CFLAGS $ARCH"
-
-# Silver Link support depends on the IOKit framework on Mac OS X
-# CW 2005-05-03
-case "$host_os" in
-  darwin*)
-    IOKIT_LIBS="-Wl,-framework -Wl,IOKit"
-  ;;
-  *)
-    IOKIT_LIBS=
-  ;;
-esac
-AC_SUBST(IOKIT_LIBS)
 
 # Ensure MSVC-compatible struct packing convention is used when
 # compiling for Win32 with gcc.
@@ -197,6 +165,8 @@ case $host_os in
   ;;
 esac
 
+AM_CONDITIONAL(OS_WIN32, test "$msnative_struct")
+
 # Check for the new -fvisibility=hidden flag introduced in gcc 4.0
 # Allow to reduce shared library size and avoid symbol clash
 case $host_os in
@@ -224,6 +194,24 @@ case $host_os in
 	fi
 	;;
 esac
+
+# Logging
+AC_ARG_ENABLE(logging,
+  AC_HELP_STRING([--enable-logging], [enable logging]),
+  [cab_cv_enable_logging=$enableval], [])
+AC_CACHE_CHECK([whether to enable logging],
+  [cab_cv_enable_logging], [cab_cv_enable_logging=no])
+if test x$cab_cv_enable_logging = xyes; then
+  AC_DEFINE(ENABLE_LOGGING, 1, [Define to 1 to enable logging.])
+fi
+
+# Custom cable support
+AC_ARG_ENABLE(link_slv,
+  AC_HELP_STRING([--disable-SilverLink], [disable SilverLink support]),
+  [use_link_slv=$enableval], [use_link_slv=yes])
+if test x$use_link_slv = xno; then
+  AC_DEFINE(NO_CABLE_SLV, 1, [Defined to disable the SilverLink support])
+fi
 
 # Output.
 AC_OUTPUT
